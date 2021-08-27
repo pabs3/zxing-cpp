@@ -1,10 +1,26 @@
-import importlib.util
 import unittest
 
 import zxingcpp
 
-has_numpy = importlib.util.find_spec('numpy') is not None
-has_pil = importlib.util.find_spec('PIL') is not None
+try:
+	ModuleNotFoundError = ModuleNotFoundError
+except NameError:
+	ModuleNotFoundError = ImportError
+
+try:
+	import numpy as np
+except ModuleNotFoundError:
+	np = None
+
+try:
+	from PIL import Image
+except ModuleNotFoundError:
+	Image = None
+
+try:
+	unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegex
+except AttributeError:
+	unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
 BF = zxingcpp.BarcodeFormat
 
@@ -16,7 +32,7 @@ class TestFormat(unittest.TestCase):
 		self.assertEqual(zxingcpp.barcode_formats_from_str('ITF, qrcode'), BF.ITF | BF.QRCode)
 
 
-@unittest.skipIf(not has_numpy, "need numpy for read/write tests")
+@unittest.skipIf(np is None, "need numpy for read/write tests")
 class TestReadWrite(unittest.TestCase):
 
 	def check_res(self, res, format, text):
@@ -52,7 +68,6 @@ class TestReadWrite(unittest.TestCase):
 		self.assertEqual(res.position.top_left.x, 61)
 
 	def test_failed_read(self):
-		import numpy as np
 		res = zxingcpp.read_barcode(
 			np.zeros((100, 100), np.uint8), formats=BF.EAN8 | BF.Aztec, binarizer=zxingcpp.Binarizer.BoolCast
 		)
@@ -61,9 +76,8 @@ class TestReadWrite(unittest.TestCase):
 		self.assertEqual(res.format, BF.NONE)
 		self.assertEqual(res.text, '')
 
-	@unittest.skipIf(not has_pil, "need PIL for read/write tests")
+	@unittest.skipIf(Image is None, "need PIL for read/write tests")
 	def test_write_read_cycle_pil(self):
-		from PIL import Image
 		format = BF.QRCode
 		text = "I have the best words."
 		img = zxingcpp.write_barcode(format, text)
@@ -77,11 +91,10 @@ class TestReadWrite(unittest.TestCase):
 
 	def test_read_invalid_type(self):
 		self.assertRaisesRegex(
-			TypeError, "Unsupported type <class 'str'>. Expect a PIL Image or numpy array", zxingcpp.read_barcode, "foo"
+			TypeError, "Unsupported type <(class|type) 'str'>. Expect a PIL Image or numpy array", zxingcpp.read_barcode, "foo"
 		)
 
 	def test_read_invalid_numpy_array_channels(self):
-		import numpy as np
 		self.assertRaisesRegex(
 			TypeError, "Unsupported number of channels for numpy array: 4", zxingcpp.read_barcode,
 			np.zeros((100, 100, 4), np.uint8)
