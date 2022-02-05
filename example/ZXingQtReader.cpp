@@ -37,7 +37,6 @@ int main(int argc, char* argv[])
 	}
 
 	auto hints = DecodeHints()
-					 .setFormats(BarcodeFormat::QRCode)
 					 .setTryRotate(false)
 					 .setBinarizer(Binarizer::FixedThreshold);
 
