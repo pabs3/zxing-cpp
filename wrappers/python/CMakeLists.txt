@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.14)
+include(CMakePrintHelpers)
 project(ZXingPython)
+
+cmake_print_variables(pybind11_FOUND)
+if (pybind11_FOUND)
+  message("pybind11_FOUND is true")
+endif()
+
+#unset(pybind11_FOUND CACHE)
+
+cmake_print_variables(pybind11_FOUND)
+if (pybind11_FOUND)
+  message("pybind11_FOUND is true")
+endif()
 
 if (BUILD_SYSTEM_DEPS STREQUAL "AUTO")
     find_package (pybind11)
@@ -7,14 +20,24 @@ elseif (BUILD_SYSTEM_DEPS STREQUAL "ALWAYS")
     find_package (pybind11 REQUIRED)
 endif()
 
+cmake_print_variables(pybind11_FOUND)
+if (pybind11_FOUND)
+  message("pybind11_FOUND is true")
+endif()
+
 if (NOT pybind11_FOUND)
     # get pybind11
     include(FetchContent)
-    #set(FETCHCONTENT_QUIET Off)
+    set(FETCHCONTENT_QUIET Off)
     FetchContent_Declare (pybind11
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
         GIT_TAG v2.7.1)
     FetchContent_MakeAvailable (pybind11)
+endif()
+
+cmake_print_variables(pybind11_FOUND)
+if (pybind11_FOUND)
+  message("pybind11_FOUND is true")
 endif()
 
 # check if we are called from the top-level ZXing project
